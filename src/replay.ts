@@ -14,6 +14,8 @@ export interface Replay {
   endFrame: number
 }
 export const MAX_FRAMES = 1800
+export const MAX_WIDTH = 3840
+export const MAX_HEIGHT = 2160
 export function createReplay(width: number, height: number): Replay {
   return { version: 1, scene: 'quiet-forms', resolution: { width, height }, fixedStep: FIXED_STEP, inputs: [], captureFrames: [0], endFrame: 0 }
 }
@@ -27,8 +29,8 @@ export function parseReplay(json: string): Replay {
   const value = JSON.parse(json)
   const integer = (n: unknown, max: number) => typeof n === 'number' && Number.isInteger(n) && n >= 0 && n <= max
   if (!value || value.version !== 1 || value.scene !== 'quiet-forms' || value.fixedStep !== FIXED_STEP ||
-      !value.resolution || !integer(value.resolution.width, 3840) || value.resolution.width === 0 ||
-      !integer(value.resolution.height, 2160) || value.resolution.height === 0 ||
+      !value.resolution || !integer(value.resolution.width, MAX_WIDTH) || value.resolution.width === 0 ||
+      !integer(value.resolution.height, MAX_HEIGHT) || value.resolution.height === 0 ||
       !integer(value.endFrame, MAX_FRAMES) || !Array.isArray(value.inputs) || !Array.isArray(value.captureFrames)) throw new Error('Invalid replay header')
   let previous = -1
   for (const input of value.inputs) {

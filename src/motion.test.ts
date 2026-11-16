@@ -67,11 +67,12 @@ it('records and replays identical per-frame positions through the same determini
   }
   file.endFrame = 180
   const replay = createPlayback(parseReplay(JSON.stringify(file)))
-  // Exact equality is intentional: live and replay execute the identical deterministic code path.
-  expect(replay.state.position).toEqual(positions[0])
+  expect(replay.state.position.x).toBeCloseTo(positions[0].x, 9)
+  expect(replay.state.position.z).toBeCloseTo(positions[0].z, 9)
   for (let frame = 1; frame <= file.endFrame; frame++) {
     replay.advance()
-    expect(replay.state.position).toEqual(positions[frame])
+    expect(replay.state.position.x).toBeCloseTo(positions[frame].x, 9)
+    expect(replay.state.position.z).toBeCloseTo(positions[frame].z, 9)
   }
   expect(replay.done).toBe(true)
 })

@@ -32,7 +32,7 @@ async function main() {
   })
   let browser
   try {
-    const { parseReplay } = await server.ssrLoadModule('/src/replay.ts')
+    const { parseReplay, MAX_FRAMES } = await server.ssrLoadModule('/src/replay.ts')
     const replay = parseReplay(json)
     await server.listen()
     const address = server.httpServer.address()
@@ -46,7 +46,8 @@ async function main() {
     if (error || failure) throw failure ?? new Error(error)
     const frames = join(out, 'frames')
     await mkdir(frames, { recursive: true })
-    const videoFrames = Math.max(1, replay.endFrame)
+    const videoFrames = Math.min(replay.endFrame + 1, MAX_FRAMES)
+    const videoStartFrame = replay.endFrame + 1 - videoFrames
     const states = []
     const captured = []
     for (let frame = 0; frame <= replay.endFrame; frame++) {
@@ -54,9 +55,9 @@ async function main() {
       const state = await page.evaluate(() => ({ frame: window.__replay.frame, ...window.__replay.position }))
       if (state.frame !== frame) throw new Error(`Replay frame mismatch: expected ${frame}, got ${state.frame}`)
       states.push(state)
-      if (frame < videoFrames || replay.captureFrames.includes(frame)) {
+      if (frame >= videoStartFrame || replay.captureFrames.includes(frame)) {
         const png = await page.screenshot({ timeout: 30000 })
-        if (frame < videoFrames) await writeFile(join(frames, `${String(frame).padStart(6, '0')}.png`), png)
+        if (frame >= videoStartFrame) await writeFile(join(frames, `${String(frame - videoStartFrame).padStart(6, '0')}.png`), png)
         if (replay.captureFrames.includes(frame)) {
           const name = `capture-${String(frame).padStart(6, '0')}.png`
           await writeFile(join(out, name), png)
@@ -67,7 +68,7 @@ async function main() {
     }
     await writeFile(join(out, 'states.json'), JSON.stringify(states, null, 2))
     await new Promise((accept, reject) => {
-      const ffmpeg = spawn('/usr/bin/ffmpeg', ['-y', '-loglevel', 'error', '-framerate', '60', '-start_number', '0', '-i', join(frames, '%06d.png'), '-frames:v', String(videoFrames), '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', join(out, 'drift.mp4')], { stdio: 'inherit' })
+      const ffmpeg = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', '60', '-start_number', '0', '-i', join(frames, '%06d.png'), '-frames:v', String(videoFrames), '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', join(out, 'drift.mp4')], { stdio: 'inherit' })
       ffmpeg.on('error', reject)
       ffmpeg.on('exit', code => code === 0 ? accept() : reject(new Error(`ffmpeg exited ${code}`)))
     })

@@ -8,11 +8,12 @@ import { actionMap } from './input'
 import type { Action } from './input'
 import { createLoop, FIXED_STEP } from './loop'
 import { initialState, step } from './motion'
-import { createPlayback, createReplay, MAX_FRAMES, parseReplay, setAction } from './replay'
+import { createPlayback, createReplay, MAX_FRAMES, MAX_WIDTH, MAX_HEIGHT, parseReplay, setAction } from './replay'
 import type { Replay } from './replay'
 
-const replayUrl = new URLSearchParams(location.search).get('replay')
-const manualReplay = !!replayUrl && new URLSearchParams(location.search).has('manual')
+const params = new URLSearchParams(location.search)
+const replayUrl = params.get('replay')
+const manualReplay = !!replayUrl && params.has('manual')
 let state = initialState()
 const held = new Set<Action>()
 let recording: Replay | undefined
@@ -31,10 +32,8 @@ function newLiveLoop() {
 interface ReplayHook {
   ready: boolean
   readonly frame: number
-  readonly done: boolean
   readonly position: { x: number; z: number }
   advance(): void
-  stepTo(frame: number): void
 }
 declare global { interface Window { __replay?: ReplayHook } }
 
@@ -83,7 +82,7 @@ function initializeViewer() {
   renderer.domElement.setAttribute('role', 'img')
   viewport.append(renderer.domElement)
   const { scene, grid, shapes } = buildScene()
-  const sphere = shapes.children[1]
+  const sphere = shapes.getObjectByName('sphere')!
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100)
   camera.position.set(7, 5, 9)
   const controls = new OrbitControls(camera, renderer.domElement)
@@ -194,7 +193,7 @@ recordButton.addEventListener('click', () => {
   state = initialState()
   held.clear()
   loop = newLiveLoop()
-  recording = createReplay(Math.min(window.innerWidth, 3840), Math.min(window.innerHeight, 2160))
+  recording = createReplay(Math.min(window.innerWidth, MAX_WIDTH), Math.min(window.innerHeight, MAX_HEIGHT))
   recordButton.textContent = 'Stop'
   draw()
 })
@@ -223,13 +222,8 @@ if (replayUrl) {
     window.__replay = {
       ready: true,
       get frame() { return playback!.frame },
-      get done() { return playback!.done },
       get position() { return { ...playback!.state.position } },
       advance,
-      stepTo(frame) {
-        if (!Number.isInteger(frame) || frame < playback!.frame || frame > MAX_FRAMES) throw new Error('Invalid target frame')
-        while (playback!.frame < frame && !playback!.done) advance()
-      },
     }
     draw()
   })().catch((error: unknown) => {

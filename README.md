@@ -55,7 +55,7 @@ Run the committed ten-second example from the repository root:
 npm run replay -- replays/drift.json --out replay-output
 ```
 
-The runner uses Playwright Chromium with software WebGL and `/usr/bin/ffmpeg`.
+The runner uses Playwright Chromium with software WebGL; ffmpeg must be on PATH.
 Playwright 1.56.1 uses browser build 1194, available on the implementation VM.
 On a machine without that browser, install it first:
 
@@ -74,8 +74,7 @@ output files are overwritten. Video duration is at most 30 seconds.
 To play in the viewer, serve a replay JSON at a URL and open `?replay=<url>`.
 Keyboard steering and recording are disabled in replay mode. The runner adds
 `&manual=1` to disable wall-clock advancement and uses
-`window.__replay.ready`, `.frame`, `.position`, `.done`, `.advance()`, and
-`.stepTo(n)` to render exact simulation frames. The hook advances forward only.
+`window.__replay.ready`, `.frame`, `.position`, and `.advance()` to render exact simulation frames. The hook advances forward only.
 
 ## License
 
