@@ -6,11 +6,12 @@ export function buildScene() {
   const shapes = new THREE.Group()
   const definitions = [
     { geometry: new THREE.BoxGeometry(1.5, 1.5, 1.5), color: '#cc7357', x: -2.2, y: 0.75 },
-    { geometry: new THREE.SphereGeometry(0.95, 48, 32), color: '#538e92', x: 0, y: 0.95 },
+    { name: 'sphere', geometry: new THREE.SphereGeometry(0.95, 48, 32), color: '#538e92', x: 0, y: 0.95 },
     { geometry: new THREE.ConeGeometry(0.9, 2, 48), color: '#d6b76b', x: 2.2, y: 1 },
   ]
-  for (const { geometry, color, x, y } of definitions) {
+  for (const { name, geometry, color, x, y } of definitions) {
     const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color, roughness: 0.55 }))
+    mesh.name = name ?? ''
     mesh.position.set(x, y, 0)
     mesh.castShadow = true
     mesh.receiveShadow = true

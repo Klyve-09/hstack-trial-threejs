@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "scene": "quiet-forms",
+  "resolution": {
+    "width": 640,
+    "height": 360
+  },
+  "fixedStep": 0.016666666666666666,
+  "inputs": [
+    {
+      "frame": 120,
+      "action": "down",
+      "pressed": true
+    },
+    {
+      "frame": 180,
+      "action": "down",
+      "pressed": false
+    },
+    {
+      "frame": 300,
+      "action": "left",
+      "pressed": true
+    },
+    {
+      "frame": 360,
+      "action": "left",
+      "pressed": false
+    },
+    {
+      "frame": 480,
+      "action": "up",
+      "pressed": true
+    },
+    {
+      "frame": 540,
+      "action": "up",
+      "pressed": false
+    }
+  ],
+  "captureFrames": [
+    0,
+    120,
+    300,
+    600
+  ],
+  "endFrame": 600
+}

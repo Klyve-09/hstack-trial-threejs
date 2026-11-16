@@ -37,3 +37,5 @@ Node.js 22.12 or newer and npm. Install dependencies with `npm ci` before runnin
 - Review-only: `LICENSE`
 - Review-only: `README.md`
 - Review-only: `docs/agents/**`
+- `lint`: `scripts/**`
+- Review-only: `replays/**`
