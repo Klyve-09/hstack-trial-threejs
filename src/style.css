@@ -33,3 +33,11 @@ input[type=checkbox] { width: 19px; height: 19px; accent-color: #386a74; cursor:
 #save-status { margin-bottom: 0; }
 #error { position: absolute; top: 35%; left: 10%; right: 10%; padding: 24px; background: #fff; border-radius: 12px; }
 @media (max-width: 600px) { header { padding: 16px; } aside { right: 16px; top: 76px; } .hint { font-size: 10px; bottom: 12px; padding: 10px; } .hint span { padding: 0 3px; } }
+.toolbar { display: flex; gap: 8px; pointer-events: auto; }
+@media (max-width: 420px) {
+  header { flex-wrap: wrap; gap: 12px; padding: 12px; }
+  .brand { font-size: 20px; padding: 8px; }
+  .toolbar { gap: 4px; }
+  .toolbar button { padding: 8px; }
+  aside { top: 110px; }
+}
