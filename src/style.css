@@ -33,3 +33,7 @@ input[type=checkbox] { width: 19px; height: 19px; accent-color: #386a74; cursor:
 #save-status { margin-bottom: 0; }
 #error { position: absolute; top: 35%; left: 10%; right: 10%; padding: 24px; background: #fff; border-radius: 12px; }
 @media (max-width: 600px) { header { padding: 16px; } aside { right: 16px; top: 76px; } .hint { font-size: 10px; bottom: 12px; padding: 10px; } .hint span { padding: 0 3px; } }
+
+.drift-controls { position: absolute; left: 50%; bottom: 100px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; width: max-content; max-width: 95%; }
+.drift-controls span { font-size: 12px; color: #243b46; padding: 4px 10px; border-radius: 8px; background: #f8fafbe8; }
+#boost:disabled { cursor: default; opacity: .65; }

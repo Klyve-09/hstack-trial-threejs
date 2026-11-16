@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { buildScene, applySceneSettings } from './scene'
 import { defaultSettings, loadSettings, saveSettings } from './settings'
+import { createSphereDrift } from './drift'
 import type { Settings } from './settings'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
@@ -18,6 +19,10 @@ app.innerHTML = `
     <div id="viewport"></div>
     <header><button id="home" class="brand">Quiet forms<span>.</span></button><button id="settings-toggle" aria-expanded="false" aria-controls="settings">Settings</button></header>
     <p class="hint">Drag to orbit <span>·</span> Scroll to zoom <span>·</span> Right-drag to pan</p>
+    <div class="drift-controls" aria-label="Sphere movement">
+      <button id="boost" aria-describedby="boost-status">Boost sphere (B)</button>
+      <span id="boost-status" role="status">Ready to boost</span>
+    </div>
     <aside id="settings" hidden aria-labelledby="settings-title">
       <div class="panel-heading"><h2 id="settings-title">Your scene</h2><button id="close-settings" aria-label="Close settings">✕</button></div>
       <p class="muted">Make a little room for your taste.</p>
@@ -33,6 +38,8 @@ const welcome = document.querySelector<HTMLElement>('#welcome')!
 const viewer = document.querySelector<HTMLElement>('#viewer')!
 const viewport = document.querySelector<HTMLElement>('#viewport')!
 const panel = document.querySelector<HTMLElement>('#settings')!
+const boostButton = document.querySelector<HTMLButtonElement>('#boost')!
+const boostStatus = document.querySelector<HTMLElement>('#boost-status')!
 const toggle = document.querySelector<HTMLButtonElement>('#settings-toggle')!
 let settings: Settings
 try { settings = loadSettings(window.localStorage) } catch { settings = { ...defaultSettings } }
@@ -40,6 +47,7 @@ let renderer: THREE.WebGLRenderer | undefined
 let resize = () => {}
 let update = () => {}
 let renderFrame = () => {}
+let boost = () => {}
 
 function initializeViewer() {
   const nextRenderer = new THREE.WebGLRenderer({ antialias: true })
@@ -49,7 +57,19 @@ function initializeViewer() {
   renderer.domElement.setAttribute('aria-label', 'A terracotta cube, teal sphere, and golden cone on a ground plane')
   renderer.domElement.setAttribute('role', 'img')
   viewport.append(renderer.domElement)
-  const { scene, grid } = buildScene()
+  const { scene, grid, shapes } = buildScene()
+  const drift = createSphereDrift(shapes.children[1]!)
+  const updateBoostStatus = () => {
+    const coolingDown = !drift.ready
+    boostButton.disabled = coolingDown
+    const text = coolingDown ? 'Recharging…' : 'Ready to boost'
+    if (boostStatus.textContent !== text) boostStatus.textContent = text
+  }
+  boost = () => {
+    drift.boost()
+    updateBoostStatus()
+  }
+  updateBoostStatus()
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100)
   camera.position.set(7, 5, 9)
   const controls = new OrbitControls(camera, renderer.domElement)
@@ -76,9 +96,22 @@ function initializeViewer() {
   update()
   resize()
   window.addEventListener('resize', resize)
-  renderFrame = () => { nextRenderer.render(scene, camera) }
+  renderFrame = () => {
+    drift.advance()
+    updateBoostStatus()
+    nextRenderer.render(scene, camera)
+  }
   renderer.setAnimationLoop(renderFrame)
 }
+
+boostButton.addEventListener('click', () => boost())
+document.addEventListener('keydown', (event) => {
+  if (viewer.hidden || !panel.hidden || event.repeat || event.defaultPrevented) return
+  if (event.ctrlKey || event.altKey || event.metaKey || event.key.toLowerCase() !== 'b') return
+  if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable]')) return
+  event.preventDefault()
+  boost()
+})
 
 function showPanel(open: boolean) {
   panel.hidden = !open
